@@ -103,7 +103,8 @@ class App extends BaseReceiver {
       setTimeout(this.displayWarning, this.timerDelay * 1000 - 4000);
     }
 
-    let date = [2018,3,3];
+    let now = new Date();
+    let date = [now.getFullYear(), now.getMonth() + 1, now.getDate()];
     fetch(DOODLE_SERVICE_URL + date[0] + "/" + date[1])
       .then(response => response.json())
       .catch(() => this.setState({doodleUrl: DEFAULT_DOODLE_URL}))
