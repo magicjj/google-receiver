@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import $ from 'jquery';
-import NoSleep from 'nosleep.js';
 
-export const SERVICE_PROXY_URL = window.location.protocol + "://" + window.location.host + ":8080/";
+export const SERVICE_PROXY_URL = window.location.protocol + "//" + window.location.hostname + ":8080/";
 export const SERVICE_URL = SERVICE_PROXY_URL + "https://11z.co/_w/";
 
 class BaseReceiver extends Component {
@@ -11,21 +10,6 @@ class BaseReceiver extends Component {
 
     currentReceiveCount = null;
     thumpListener = () => false;
-
-    constructor(props) {
-        super(props)
-        this.nosleep = new NoSleep();
-    }
-
-    enableNoSleep() {
-        console.log("setup nosleep");
-        this.nosleep.enable();
-    }
-
-    componentWillUnmount() {
-        console.log("teardown nosleep");
-        this.nosleep.disable();
-    }
 
     thump(uid, thumper, value, callback) {
         this.setSelection(uid, thumper, value,

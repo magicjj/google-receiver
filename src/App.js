@@ -3,28 +3,16 @@ import './App.css';
 import $ from 'jquery';
 import $cookie from 'jquery.cookie';
 import fetch from 'node-fetch';
-import { SERVICE_URL, SERVICE_PROXY_URL } from './BaseReceiver';
-import BaseReceiver from './BaseReceiver';
-import NoSleep from 'nosleep.js';
+import BaseReceiver, { SERVICE_URL, SERVICE_PROXY_URL } from './BaseReceiver.js';
 window.jQuery = window.$ = $;
 
-// TODO ADD WAKELOCK OR NOSLEEP
-// implement fetch
+
 // make sure cookies work
-
-let noSleep = new NoSleep();
-function enableNoSleep() {
-  noSleep.enable();
-  document.removeEventListener('click', enableNoSleep, false);
-}
-
-// Enable wake lock.
-// (must be wrapped in a user input event handler e.g. a mouse or touch handler)
-document.addEventListener('click', enableNoSleep, false);
 
 
 const DOODLE_SERVICE_URL = SERVICE_PROXY_URL + "https://www.google.com/doodles/json/";
 const DEFAULT_DOODLE_URL = "http://www.11z.co/images/google.png";
+
 
 class App extends BaseReceiver {
   tableId = "";
@@ -76,7 +64,6 @@ class App extends BaseReceiver {
       warn: false,
       doodleUrl: null
     };
-    this.enableNoSleep = this.enableNoSleep.bind(this);
     this.getSelection = this.getSelection.bind(this);
     this.setReceiverType = this.setReceiverType.bind(this);
     this.toggleMode = this.toggleMode.bind(this);
