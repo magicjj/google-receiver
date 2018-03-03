@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import $ from 'jquery';
 import NoSleep from 'nosleep.js';
 
-export const SERVICE_URL = "http://192.168.1.12:8080/https://11z.co/_w/";
+export const SERVICE_PROXY_URL = window.location.protocol + "://" + window.location.host + ":8080/";
+export const SERVICE_URL = SERVICE_PROXY_URL + "https://11z.co/_w/";
 
 class BaseReceiver extends Component {
     nosleep = null;

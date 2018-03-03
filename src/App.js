@@ -3,7 +3,7 @@ import './App.css';
 import $ from 'jquery';
 import $cookie from 'jquery.cookie';
 import fetch from 'node-fetch';
-import { SERVICE_URL } from './BaseReceiver';
+import { SERVICE_URL, SERVICE_PROXY_URL } from './BaseReceiver';
 import BaseReceiver from './BaseReceiver';
 import NoSleep from 'nosleep.js';
 window.jQuery = window.$ = $;
@@ -23,8 +23,7 @@ function enableNoSleep() {
 document.addEventListener('click', enableNoSleep, false);
 
 
-
-const DOODLE_SERVICE = "http://192.168.1.12:8080/https://www.google.com/doodles/json/";
+const DOODLE_SERVICE_URL = SERVICE_PROXY_URL + "https://www.google.com/doodles/json/";
 const DEFAULT_DOODLE_URL = "http://www.11z.co/images/google.png";
 
 class App extends BaseReceiver {
@@ -118,7 +117,7 @@ class App extends BaseReceiver {
     }
 
     let date = [2018,3,3];
-    fetch(DOODLE_SERVICE + date[0] + "/" + date[1])
+    fetch(DOODLE_SERVICE_URL + date[0] + "/" + date[1])
       .then(response => response.json())
       .catch(() => this.setState({doodleUrl: DEFAULT_DOODLE_URL}))
       .then(res => {
