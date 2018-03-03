@@ -5,4 +5,5 @@ import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 
 ReactDOM.render(<App />, document.getElementById('root'));
-registerServiceWorker();
+// TODO - make all origins https then uncomment this to enable caching
+//registerServiceWorker();
