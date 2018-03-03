@@ -43,20 +43,7 @@ class App extends BaseReceiver {
 
   constructor(props) {
     super(props);
-
-    this.userId = 8575;
-    this.thumper = {
-      "type": "image", "id": 19, "handle": "19", "type": "image", "name": "Stanford List (Receiver)", "valueType": "value", "customUrl": null, "aliases": [],
-      "base": { // TODO on backend - instead of just passing a URL, you are passing a JSON object
-        listLogo: "default",
-        listHeader: "Custom List",
-        listItems: ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"]
-      },
-      "sticky": true, "authorisedThumpers": [18], "ogTitle": ""
-    };
-    this.thumperId = this.thumper.id;
-    this.tableId = "1518197032644";
-
+    
     this.state = {
       receiverType: "web",
       mode: 2,

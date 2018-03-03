@@ -7,9 +7,39 @@ export const SERVICE_URL = SERVICE_PROXY_URL + "https://11z.co/_w/";
 class BaseReceiver extends Component {
     nosleep = null;
     userId = null;
+    thumperId = null;
+    tableId = null;
+    timerEnabled = false;
+    timerDelay = 30;
 
     currentReceiveCount = null;
     thumpListener = () => false;
+
+    constructor(props) {
+        super(props);
+        let path = window.location.pathname;
+        let regex = /([0-9]+)(?:\/([0-9]+)){0,1}(?:-([0-9]+)){0,1}(?::([0-9]+)){0,1}/g;
+        let pathMatches = regex.exec(path);
+        if (!pathMatches) {
+            window.location = 'www.google.com';
+            return;
+        }
+        if (pathMatches[1]) {
+            this.userId = pathMatches[1];
+        }
+        if (pathMatches[2]) {
+            this.thumperId = pathMatches[2];
+        }
+        if (pathMatches[3]) {
+            this.tableId = pathMatches[3];
+        }
+        if (pathMatches[4]) {
+            this.timerDelay = pathMatches[4];
+        }
+        if (path.indexOf(":")) {
+            this.timerEnabled = true;
+        }
+    }
 
     thump(uid, thumper, value, callback) {
         this.setSelection(uid, thumper, value,
