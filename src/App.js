@@ -18,15 +18,12 @@ class App extends BaseReceiver {
   tableId = "";
   modeStrings = ["VIDEOS", "VIDEO", "YOUTUBE"];
   covert_text = "What are you thinking of?";
-  useLastThump = false;
-  timerEnabled = false;
-  timerDelay = 30;
 
-  
   // receiverType = "web"; mode = 2;  moved to state
+  //merge = false;  moved to state
+
   selections = [];
 
-  in_covert_mode = false;
   inputValLength = 0;
   covert_text_pos = 2;
   covert_thump = "";
@@ -35,7 +32,6 @@ class App extends BaseReceiver {
   handling = false;
   lastSelection = "";
   lastSelectionCount = -1;
-  //merge = false;  moved to state
   mergeCount = 0;
 
   doodles = [];
@@ -43,13 +39,16 @@ class App extends BaseReceiver {
 
   constructor(props) {
     super(props);
-    
+
     this.state = {
       receiverType: "web",
       mode: 2,
       merge: false,
       warn: false,
-      doodleUrl: null
+      doodleUrl: null,
+      covertMode: false,
+      covertValue: "",
+      searchValue: "birthday of "
     };
     this.getSelection = this.getSelection.bind(this);
     this.setReceiverType = this.setReceiverType.bind(this);
@@ -58,31 +57,16 @@ class App extends BaseReceiver {
     this.toggleMerge = this.toggleMerge.bind(this);
     this.doodlePress = this.doodlePress.bind(this);
     this.doodleRelease = this.doodleRelease.bind(this);
+    this.displayWarning = this.displayWarning.bind(this);
+    this.flip = this.flip.bind(this);
+    this.handleSearchChange = this.handleSearchChange.bind(this);
   }
 
   componentDidMount() {
-    //window.history.replaceState({},"Google","/");
     this.setReceiverType("web");
 
-    
-    if (this.covert_text != "") {
-
-      $("#q").keyup((event) => {
-        this.removeCookie(null);
-      });
-
-      $("#q").keypress((event) => {
-        if (this.in_covert_mode) {
-          if (event.keyCode == 13) {
-            return;
-          }
-          event.preventDefault();
-          this.removeCookie(String.fromCharCode(event.keyCode));
-        }
-      });
-    }
     if (this.useLastThump) {
-      $("#q").val("");
+      this.setState({ searchValue: "" });
     }
     this.initMonitoring();
 
@@ -115,16 +99,16 @@ class App extends BaseReceiver {
     let swapDoodle = (change) => {
       this.doodleIndex = (this.doodleIndex + change) % this.doodles.length;
       if (this.doodleIndex < 0) {
-        this.doodleIndex = this.doodles.length - 1;
+        this.doodleIndex = 0;
       }
       this.setState({ doodleUrl: this.doodles[this.doodleIndex].url });
     };
     
     let clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
     if (clientX > this.doodlePressX + 150) {
-      swapDoodle(1);
-    } else if (clientX < this.doodlePressX - 150) {
       swapDoodle(-1);
+    } else if (clientX < this.doodlePressX - 150) {
+      swapDoodle(1);
     } else {
       this.toggleMerge();
     }
@@ -146,55 +130,9 @@ class App extends BaseReceiver {
   removeCookie() {
     var cookies = $.cookie();
     for (var key in cookies) {
-      if (key.indexOf("i-ghandle") == 0)
+      if (key.indexOf("i-ghandle") === 0)
         $.removeCookie(key);
     }
-  }
-
-  keyup(theKey) {
-    var inputVal = $("#q").val();
-    if (theKey != null) {
-      inputVal += theKey;
-    }
-    var delta = inputVal.length - this.inputValLength;
-    if (delta == 0) {
-      return;
-    }
-    //console.log("val="+inputVal);
-    var isBack = false;
-    if (inputVal.length < this.inputValLength || inputVal.length == 0) {
-      isBack = true;
-    }
-    this.inputValLength = inputVal.length;
-
-    if (!this.in_covert_mode && inputVal === "qp") {
-      this.in_covert_mode = true;
-      this.covert_thump = "";
-      $("#q").val(this.covert_text.substring(0, 2));
-    } else {
-      if (this.in_covert_mode) {
-        if (!isBack) {
-          this.covert_text_pos += delta;
-          if (!this.covert_thump_captured) {
-            this.covert_thump += inputVal.substring(inputVal.length - delta, inputVal.length);
-          }
-          if (this.covert_thump.endsWith("qp")) {
-            this.covert_thump = this.covert_thump.substring(0, this.covert_thump.length - 2);
-            //console.log("CAPTURED: "+this.covert_thump);
-            this.covert_thump_captured = true;
-          }
-        } else {
-          if (this.covert_text_pos > 0) {
-            this.covert_text_pos -= 1;
-          }
-          if (this.covert_thump.length > 0) {
-            this.covert_thump = this.covert_thump.substring(0, this.covert_thump.length - 1);
-          }
-        }
-        $("#q").val(this.covert_text.substring(0, this.covert_text_pos));
-      }
-    }
-    //console.log("covert="+this.covert_thump);
   }
 
   getClassByReceiverType(receiverType) {
@@ -206,16 +144,16 @@ class App extends BaseReceiver {
 
     if (this.useLastThump && !this.isEmpty(this.lastSelection)) {
       let url;
-      if (this.state.receiverType == "web") {
+      if (this.state.receiverType === "web") {
         url = "https://google.com/search?q=" + this.lastSelection;
       }
-      else if (this.state.receiverType == "images") {
+      else if (this.state.receiverType === "images") {
         url = "https://google.com/search?tbm=isch&q=" + this.lastSelection;
       }
-      else if (this.state.receiverType == "maps") {
+      else if (this.state.receiverType === "maps") {
         url = "https://maps.google.com/maps/?q=" + this.lastSelection;
       }
-      else if (this.state.receiverType == "youtube") {
+      else if (this.state.receiverType === "youtube") {
         url = "https://www.youtube.com/results?search_query=" + this.lastSelection;
       }
       this.removeCookie();
@@ -239,7 +177,7 @@ class App extends BaseReceiver {
       return;
     }
     this.mergeCount += 1;
-    if (this.mergeCount % 2 == 0) {
+    if (this.mergeCount % 2 === 0) {
       this.setState({ merge: !this.state.merge });
     }
     return false;
@@ -247,20 +185,20 @@ class App extends BaseReceiver {
 
   search(event) {
     event.preventDefault();
-    var selection = $("#q").val();
-    if ("" == selection.trim()) {
+    let selection = this.state.searchValue;
+    if (this.state.covertMode) {
+      selection = this.state.covertInput;
+    }
+    if ("" === selection.trim()) {
       return;
     }
-    if (this.state.mode == 2) {
-      if (this.in_covert_mode) {
-        selection = this.covert_thump;
-      }
+    if (this.state.mode === 2) {
       var data = { value: selection, source: "google" };
       this.handling = true;
       
       let _successCallback = () => {
         document.title = "Google";
-        var newLoc = this.getSelectionUrl($("#q").val());
+        var newLoc = this.getSelectionUrl(this.state.covertMode ? this.state.covertValue : this.state.searchValue);
         this.removeCookie();
         window.location.replace(newLoc);
       };
@@ -281,7 +219,7 @@ class App extends BaseReceiver {
     } else {
       //mode = 1;
       this.lastSelectionCount += 1;
-      var data = { value: $("#q").val(), source: "google" };
+      var data = { value: selection, source: "google" };
 
       let _successCallback = () => { };
       let _errorCallback = () => { };
@@ -306,16 +244,16 @@ class App extends BaseReceiver {
     if (this.isURL(selection)) {
       return selection;
     }
-    if (this.state.receiverType == "web") {
+    if (this.state.receiverType === "web") {
       return "https://www.google.com/search?q=" + encodeURIComponent(selection);
     }
-    else if (this.state.receiverType == "images") {
+    else if (this.state.receiverType === "images") {
       return "https://www.google.com/search?tbm=isch&q=" + encodeURIComponent(selection) + "&oq=" + encodeURIComponent(selection);
     }
-    else if (this.state.receiverType == "maps") {
+    else if (this.state.receiverType === "maps") {
       return "https://maps.google.com/maps/?q=" + encodeURIComponent(selection) + "&oq=" + encodeURIComponent(selection);
     }
-    else if (this.state.receiverType == "youtube") {
+    else if (this.state.receiverType === "youtube") {
       return "https://www.youtube.com/results?search_query=" + encodeURIComponent(selection);
     }
   }
@@ -323,10 +261,10 @@ class App extends BaseReceiver {
   // ----------------
 
   initMonitoring() {
-    if (this.tableId == "") {
+    if (this.tableId === "") {
       this.tableId = "" + new Date().getTime();
     }
-    if (this.tableId == "0") {
+    if (this.tableId === "0") {
       this.startMonitoring();
       return;
     }
@@ -334,7 +272,6 @@ class App extends BaseReceiver {
   }
 
   startMonitoring() {
-    $("#page").show();
     this.interval = setInterval(this.getSelection, 500);
   }
 
@@ -343,7 +280,7 @@ class App extends BaseReceiver {
       this.handling = true;
 
       let _successCallback = (result) => {
-        if (typeof result.error != 'undefined') {
+        if (typeof result !== 'undefined' && typeof result.error !== 'undefined') {
           this.selectionError(result.error);
           this.handling = false;
           return;
@@ -382,15 +319,15 @@ class App extends BaseReceiver {
       return;
     }
     if (this.useLastThump) {
-      if (this.isEmpty($("#q").val())) {
-        $("#q").val(this.lastSelection);
+      if (this.isEmpty(this.state.searchValue)) {
+        this.setState({ searchValue: this.lastSelection });
       }
     }
-    if (this.in_covert_mode) {
+    if (this.state.covertMode) {
       clearInterval(this.interval);
       return;
     }
-    if (this.lastSelectionCount == -1) {
+    if (this.lastSelectionCount === -1) {
       this.lastSelectionCount = selection.count;
       return;
     }
@@ -405,31 +342,29 @@ class App extends BaseReceiver {
   }
 
   onSelection(selection) {
-    //	if (mode == 2) {
-    //		return;
-    //	}
-    if (this.state.mode == 0) {
+    if (this.state.mode === 0) {
       this.selections.push(selection.value);
-      if (selection.source == "google") {
+      if (selection.source === "google") {
         return;
       } else {
         selection.value = this.selections.join(' ');
       }
     }
     if (!this.isURL(selection.value)) {
-      if (this.merge) {
-        var value = $("#q").val();
-        if (value.indexOf("mmm") != -1) {
-          value = value.replace("mmm", selection.value);
+      // TODO Test this replacement
+      if (this.state.merge) {
+        var value;
+        if (this.state.searchValue.indexOf("mmm") > -1) {
+          value = this.state.searchValue.replace("mmm", selection.value);
         } else {
-          value = value + " " + selection.value;
+          value = this.state.searchValue.trim() + " " + selection.value.trim();
         }
         selection.value = value;
       }
       selection.value = this.getSelectionUrl(selection.value);
     }
     document.title = "Google";
-    /* 
+    /* TODO - this was already commented out - but I want to explore the idea more
     if (this.willExitBrowser(selection.value)) {
       setTimeout(function () {
         this.removeCookie();
@@ -463,23 +398,36 @@ class App extends BaseReceiver {
   }
 
   isURL(value) {
-    return value.indexOf("http") == 0;
+    return value.indexOf("http") === 0;
   }
 
   contains(str, value) {
     return str.indexOf(value) >= 0;
   }
 
+  handleSearchChange(e) {
+    let searchValue = e.target.value;
+    let covertMode = this.state.covertMode;
+    let covertValue = this.state.covertValue;
+    let covertInput = this.state.covertInput;
+    
+
+    if (searchValue.indexOf("qp") === 0) {
+      covertMode = true;
+      covertValue = this.covert_text.slice(0, searchValue.length);
+      while (covertValue.length < searchValue.length) {
+        covertValue += " ";
+      }
+      covertInput = searchValue.slice(2).split("qp")[0];
+    } else {
+      covertMode = false;
+    }
+
+    this.setState({ searchValue, covertMode, covertValue, covertInput });
+  }
 
   render() {
     // TODO add error this.handling if pic doesn't load
-    /* {this.state.content.listHeader}
-        <ol>
-          {
-            this.state.content.listItems.map(item => <li key={item}>{item}</li>)
-          }
-        </ol>
-    */
     return (
       <div>
         <div>
@@ -502,9 +450,10 @@ class App extends BaseReceiver {
                     <a href="" id="mlogo"></a>
                     <div className="msfi" id="tsfi">
                       <div id="gs_id0">
-                        <div className="sb_ifc" id="sb_ifc0" dir="ltr">
+                        <div className="sb_ifc inputDiv " id="sb_ifc0" dir="ltr">
                           <div className="sb_chc" id="sb_chc0"></div>
-                          <input className="lst lst-tbb gsfi searchInput" id="q" maxLength="2048" name="q" autoCapitalize="off" autoComplete="off" autoCorrect="off" title="" type="search" defaultValue="birthday of " aria-label="Search" aria-haspopup="false" role="combobox" aria-autocomplete="both" dir="ltr" spellCheck="false" />
+                          { this.state.covertMode ? <input className="lst lst-tbb gsfi searchInput covertSearchMask" id="qMask" maxLength="2048" name="q" autoCapitalize="off" autoComplete="off" autoCorrect="off" title="" type="search" value={this.state.covertValue} readOnly="true" aria-label="Search" aria-haspopup="false" role="combobox" aria-autocomplete="both" dir="ltr" spellCheck="false" /> : '' }
+                          <input className="lst lst-tbb gsfi searchInput" id="q" maxLength="2048" name="q" autoCapitalize="off" autoComplete="off" autoCorrect="off" title="" type="search" value={this.state.searchValue} onChange={this.handleSearchChange} aria-label="Search" aria-haspopup="false" role="combobox" aria-autocomplete="both" dir="ltr" spellCheck="false" />
                           <div className="gsst_b" id="gs_st0" dir="ltr"><a className="gsst_a hidden" href="javascript:void(0)"><span className="sbcb_a" id="sb_cb0" aria-label="Clear Search">×</span></a>
                           </div>
                         </div>
