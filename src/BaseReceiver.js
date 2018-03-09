@@ -1,11 +1,10 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
 import $ from 'jquery';
-
-export const SERVICE_PROXY_URL = window.location.protocol + "//" + window.location.hostname + ":8080/";
-export const SERVICE_URL = SERVICE_PROXY_URL + "https://11z.co/_w/";
+import GoogleReceiver from './google-receiver/GoogleReceiver';
+import ListReceiver from './list-receiver/ListReceiver';
+import {SERVICE_PROXY_URL, SERVICE_URL, API_URL} from './shared/env';
 
 class BaseReceiver extends Component {
-    nosleep = null;
     userId = null;
     thumperId = null;
     tableId = null;
@@ -19,9 +18,14 @@ class BaseReceiver extends Component {
     constructor(props) {
         super(props);
         let path = window.location.pathname;
-        let regex = /([0-9]+)(?:\/([0-9]+)){0,1}(?:-([0-9]+)){0,1}(?::([0-9]+)){0,1}!{0,1}/g;
+        let regex = /([0-9]+)(?:\/([^\/]+)){0,1}(?:-([^\/]+)){0,1}(?::([0-9]+)){0,1}!{0,1}/g;
         let pathMatches = regex.exec(path);
         if (!pathMatches) {
+            this.userId = "8575";   // TODO REMOVE THIS
+            this.state = {
+                thumper: null
+            };
+            return;
             window.location.replace('https://www.google.com');
             return;
         }
@@ -45,6 +49,43 @@ class BaseReceiver extends Component {
         }
 
         window.history.replaceState({}, "Google", "/");
+
+        this.state = {
+            thumper: null
+        };
+    }
+
+    componentDidMount() {
+        if (this.thumperId !== null) {
+            fetch(API_URL + "thumpers/" + this.userId + "/" + this.thumperId, {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Server': 'Google Frontend'
+                }
+            })
+                .then(response => response.json())
+                //.catch() // TODO!
+                .then((thumper) => {
+                    this.setState({ thumper });
+                })
+            ;
+        } else {
+            fetch(API_URL + "thumpers/" + this.userId, {   // todo I should make thmpers/userid without a thumperid match this
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Server': 'Google Frontend'
+                }
+            })
+                .then(response => response.json())
+                //.catch() // TODO!
+                .then((user) => {
+                    this.setState({ thumper: { type:'google', ...user }});
+                })
+            ;
+            //this.setState({thumper: { type: 'google' }});
+        }
     }
 
     thump(uid, thumper, value, callback) {
@@ -86,6 +127,7 @@ class BaseReceiver extends Component {
     }
 
     thumpListenerCallback() {
+        // TODO make fetch
         $.get(SERVICE_URL + encodeURIComponent(this.userId) + "/selection?tm=" + new Date().getTime())
             .success((data) => {
                 if (data.receiveCount !== this.currentReceiveCount) {
@@ -108,6 +150,16 @@ class BaseReceiver extends Component {
             return true;
         }
         return false;
+    }
+
+    render() {
+        if (this.state.thumper === null) {
+            return null;
+        }
+        if (this.state.thumper.type === 'list') {
+            return <ListReceiver BaseReceiver={this} thumper={this.state.thumper}/>
+        }
+        return <GoogleReceiver BaseReceiver={this} thumper={this.state.thumper} />
     }
 }
 
