@@ -5,12 +5,12 @@ class Autocomplete extends Component {
         if (this.props.autocompleteData === null) {
             return null;
         }
-        
+
         return (
             <div jscontroller="Uox2uf" className="_ejs">
                 <ul className="_Xhs" jsname="aajZCb" role="listbox">
                     {
-                        this.props.autocompleteData.list.map(item => 
+                        this.props.autocompleteData.list.slice(0, 5).map(item => 
                             <li className="sbct" role="presentation" key={item}>
                                 <div className="sbic sb43" onClick={() => this.props.searchHandler(item)}></div>
                                 <div className="sbtc" role="option" onClick={() => this.props.searchHandler(item)}>
