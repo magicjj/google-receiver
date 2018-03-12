@@ -232,8 +232,11 @@ class GoogleReceiver extends Component {
     return false;
   }
 
-  search(str) {
-    let selection = typeof str === "string" ? str : this.state.searchValue;
+  search(o) {
+    if (typeof o === "object" && o.preventDefault) {
+      o.preventDefault();
+    } 
+    let selection = typeof o === "string" ? o : this.state.searchValue;
     if (this.state.covertMode) {
       selection = this.state.covertInput;
     }
