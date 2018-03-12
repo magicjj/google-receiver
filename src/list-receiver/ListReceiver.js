@@ -222,6 +222,7 @@ class ListReceiver extends Component {
       this.handling = true;
 
       let _successCallback = (result) => {
+        console.log(result);
         if (typeof result !== 'undefined' && typeof result.error !== 'undefined') {
           this.handling = false;
           return;
@@ -316,11 +317,12 @@ class ListReceiver extends Component {
       return null;
     }
 
+    let listCopy = data.list.slice();
     let selectionIndex = this.state.selection - 1;
     if (selectionIndex !== 0) {
-      let temp = data.list[selectionIndex];
-      data.list[selectionIndex] = data.list[0];
-      data.list[0] = temp;
+      let temp = listCopy[selectionIndex];
+      listCopy[selectionIndex] = listCopy[0];
+      listCopy[0] = temp;
     }
 
     if (data.showAd === "true" || data.showAd === true) {
@@ -341,14 +343,16 @@ class ListReceiver extends Component {
               <img src={this.state.theme.adTop} alt="Ad" draggable="false" onClick={this.redirect} />
             </div>
           </Grid>
+          : null}
+        {data.title !== null && data.title.trim() !== "" ?
+          <Grid item xs={12}>
+            <h1 className="title">{data.title}</h1>
+          </Grid>
         : null}
-        <Grid item xs={12}>
-          <h1 className="title">{data.title}</h1>
-        </Grid>
         <Grid item xs={12} className={this.props.classes.listPadding}>
           <ul className="mainList">
             {
-              data.list.map((item, i) => {
+              listCopy.map((item, i) => {
                 let index = i + 1;
                 return <li key={item} className={i === 0 ? this.props.classes.topMarNone : ""}><span className={this.state.theme.numberClass}>{index}</span> {item}</li>;
               })
@@ -368,18 +372,6 @@ class ListReceiver extends Component {
           </Grid>
         : null}
       </Grid>
-    );
-    return (
-      <div className="App">
-        {data.header}
-        
-        <ol>
-          {
-            data.list.map(item => <li key={item}>{item}</li>)
-          }
-        </ol>
-        
-      </div>
     );
   }
 }

@@ -5,24 +5,12 @@ class Autocomplete extends Component {
         if (this.props.autocompleteData === null) {
             return null;
         }
-
-        let printList = [];
-        for (var i = 0; i < this.props.autocompleteData.list.length; i++) {
-            let str = this.props.autocompleteData.list[i];
-            if (str.indexOf(this.props.autocompleteData.req) !== 0) {
-                continue;
-            }
-            printList.push(str);
-            if (printList.length >= 5) {
-                break;
-            }
-        }
-
+        
         return (
             <div jscontroller="Uox2uf" className="_ejs">
                 <ul className="_Xhs" jsname="aajZCb" role="listbox">
                     {
-                        printList.map(item => 
+                        this.props.autocompleteData.list.map(item => 
                             <li className="sbct" role="presentation" key={item}>
                                 <div className="sbic sb43" onClick={() => this.props.searchHandler(item)}></div>
                                 <div className="sbtc" role="option" onClick={() => this.props.searchHandler(item)}>

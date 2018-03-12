@@ -59,7 +59,7 @@ h1.title {
 }
 
 .buzzfeedNumbers, .stanfordNumbers {
-    background-color: #5e3032;
+    background-color: black;
     color: #fff;
     display: inline;
     padding-left: 4px;
@@ -69,4 +69,12 @@ h1.title {
     font-size: .7em;
     margin-right:.5em;
     margin-left:.3em;
+}
+
+.stanfordNumbers {
+    background-color: #5e3032;
+}
+
+.buzzfeedNumbers {
+  background-color: #ee3322;
 }

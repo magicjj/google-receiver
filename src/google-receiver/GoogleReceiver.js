@@ -232,11 +232,8 @@ class GoogleReceiver extends Component {
     return false;
   }
 
-  search(event) {
-    if (event) {
-      event.preventDefault();
-    }
-    let selection = this.state.searchValue;
+  search(str) {
+    let selection = typeof str === "string" ? str : this.state.searchValue;
     if (this.state.covertMode) {
       selection = this.state.covertInput;
     }
@@ -493,7 +490,7 @@ class GoogleReceiver extends Component {
         console.log(res);
         if (this.state.autocompleteData === null || this.state.autocompleteData.reqTime < reqTime) {
           // to keep things clean, we filter out all the suggestions to that don't start with the search term
-          this.setState({ autocompleteData: { list: res[1].filter((o) => o.indexOf(res[0]) === 0), req: res[0], reqTime  } });
+          this.setState({ autocompleteData: { list: res[1].filter((o) => o.toLowerCase().indexOf(res[0].toLowerCase()) === 0), req: res[0], reqTime  } });
         }
       })
       ;
@@ -505,14 +502,13 @@ class GoogleReceiver extends Component {
 
   autocompletePushHandler(str) {
     document.getElementById("q").focus();
-    this.setState({ searchFocused: true })
-    this.setState({searchValue: str});
+    this.setState({ searchFocused: true, searchValue: str });
     setTimeout(this.fetchAutocomplete);
   }
 
   autocompleteSearchHandler(str) {
     this.autocompletePushHandler(str);
-    this.search();
+    setTimeout(() => this.search(str));
   }
 
   isEditMode() {
