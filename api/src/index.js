@@ -35,32 +35,6 @@ router.use(function (req, res, next) {
     next();
 });
 
-router.route('/users/add/:userId')
-    .get(function (req, res) {
-        var user = new User();
-        user.userId = req.params.userId;
-        user.save(function (err) {
-            if (!err && user) {
-                res.json(user);
-            }
-        });
-    })
-;
-
-router.route('/users/:userId/addList')
-    .get(function (req, res) {
-        var thumper = new Thumper();
-        thumper.userId = req.params.userId;
-        thumper.data = req.query.list;
-        thumper.type = 'list';
-        thumper.save(function (err) {
-            if (!err && thumper) {
-                res.json(thumper);
-            }
-        });
-    })
-;
-
 router.route('/thumpers/:userId')
     .get(function (req, res) {
         User.find({ userId: { $eq: req.params.userId } }, function (err, user) {
@@ -76,6 +50,7 @@ router.route('/thumpers/:userId')
             }
             var user = new User();
             user.userId = req.params.userId;
+            // TODO make these optional
             if (typeof req.body.defaultText !== "undefined") {
                 user.defaultText = req.body.defaultText;
             }
@@ -117,18 +92,81 @@ router.route('/thumpers/:userId')
     })
 ;
 
-router.route('/thumpers/:userId/:thumperId')
+router.route('/thumpers/:userId/list')
     .get(function (req, res) {
         var userId = req.params.userId;
         var thumperId = parseInt(req.params.thumperId);
+        Thumper.find({ userId })
+            .exec(function (err, thumpers) {
+                if (!err && thumpers) {
+                    res.json(thumpers);
+                }
+            })
+        ;
+    })
+;
+
+router.route('/thumpers/:userId/:thumperId')
+    .get(function (req, res) {
+        var userId = req.params.userId;
+        var thumperIdInt = parseInt(req.params.thumperId);
+        var handleOrCondition = [{ handle: req.params.thumperId }];
+        if (!isNaN(thumperIdInt)) {
+            handleOrCondition.push({ id: thumperIdInt });
+        }
         Thumper.find( { userId } )
-            .or([{id: thumperId}, {handle: thumperId}])
+            .or(handleOrCondition)
             .exec(function (err, thumper) {
                 if (!err && thumper) {
+                    // todo catch if length is 0
                     res.json(thumper[0]);
                 }
             })
         ;
+    })
+    .post(function (req, res) {
+        if (req.body.action === "add") {
+            var thumper = new Thumper();
+            thumper.userId = req.params.userId;
+            thumper.type = req.body.type;
+            thumper.handle = req.body.handle;
+            thumper.name = req.body.name;
+            thumper.data = req.body.data;
+            thumper.authorizedThumpers = req.body.authorizedThumpers;
+            thumper.save(function (err) {
+                if (!err && thumper) {
+                    res.json(thumper);
+                }
+            });
+        } else if (req.body.action === "delete") {
+            Thumper.find({ userId: req.params.userId })
+                .or([{ id: req.params.thumperId }, { handle: req.params.thumperId }])
+                .remove(function (err) {
+                    if (!err) {
+                        res.json(null);
+                    }
+                })
+            ;
+        } else {
+            Thumper.find({ userId: req.params.userId })
+                .or([{ id: req.params.thumperId }, { handle: req.params.thumperId }])
+                .exec(function (err, thumper) {
+                    if (!err && thumper) {
+                        thumper = thumper[0];
+                        thumper.type = req.body.type;
+                        thumper.handle = req.body.handle;
+                        thumper.name = req.body.name;
+                        thumper.data = req.body.data;
+                        thumper.authorizedThumpers = req.body.authorizedThumpers;
+                        thumper.save(function (err) {
+                            if (!err && thumper) {
+                                res.json(thumper);
+                            }
+                        });
+                    }
+                })
+            ;
+        }
     })
 ;
 

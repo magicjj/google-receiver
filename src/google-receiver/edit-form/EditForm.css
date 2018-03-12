@@ -1,0 +1,10 @@
+.link {
+    color: blue !important;
+    text-decoration: underline;
+}
+.floatRight {
+    float:right;
+}
+.editContainer {
+    margin:5px !important;
+}

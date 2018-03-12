@@ -4,6 +4,9 @@ import $ from 'jquery';
 import $cookie from 'jquery.cookie';
 import fetch from 'node-fetch';
 import { SERVICE_PROXY_URL, SERVICE_URL } from '../shared/env';
+import { withStyles } from 'material-ui/styles';
+import ListThumperOptions from '../google-receiver/edit-form/thumper-options/ListThumperOptions';
+import Grid from 'material-ui/Grid';
 window.jQuery = window.$ = $;
 
 
@@ -30,28 +33,17 @@ class ListReceiver extends Component {
     this.timerDelay = base.timerDelay;
     this.useLastThump = base.useLastThump;
     
-/* 
-    this.thumper = {"type":"image","id":19,"handle":"19","name":"Stanford List (Receiver)","valueType":"value","customUrl":null,"aliases":[],
-      "base": { // TODO on backend - instead of just passing a URL, you are passing a JSON object
-        listLogo: "default",
-        listHeader: "Custom List",
-        listItems: ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"]
-      },
-      "sticky":true,"authorisedThumpers":[18],"ogTitle":""
-    }; */
-    
     this.state = {
       thumper: props.thumper,
-      selection: 4
+      selection: 1
     };
 
     this.getSelection = this.getSelection.bind(this);
     this.displayTableImage = this.displayTableImage.bind(this);
+    this.redirect = this.redirect.bind(this);
   }
 
   componentDidMount() {
-    
-
     window.onpageshow = function(event) {
       if (event.persisted) {
           window.location.reload();
@@ -76,6 +68,34 @@ class ListReceiver extends Component {
       this.displayTableImage();
     }
     this.interval = setInterval(this.getSelection, 500);
+    
+    ListThumperOptions.setData.bind(this)(this.props.thumper.data);
+    setTimeout(() => {
+      let theme;
+
+      if (this.state.thumperData.header === "Buzzfeed") {
+        theme = {
+          header: "/assets/images/buzzfeedHeader.png",
+          footer: "/assets/images/buzzfeedFooter.png",
+          adTop: "/assets/images/buzzfeedAdTop.png",
+          adBottom: "/assets/images/buzzfeedAdBottom.png",
+          numberClass: "buzzfeedNumbers",
+          redirectLink: "https://www.buzzfeed.com"
+        }
+      } else {
+        // default is Stanford
+        theme = {
+          header: "/assets/images/stanfordHeader.png",
+          footer: "/assets/images/stanfordFooter.png",
+          adTop: "/assets/images/stanfordAdTop.png",
+          adBottom: "/assets/images/stanfordAdBottom.png",
+          numberClass: "stanfordNumbers",
+          redirectLink: "https://psychology.stanford.edu"
+        }
+      }
+
+      this.setState({ theme });
+    });
   }
 
   thump(uid, thumper, value, callback) {
@@ -87,7 +107,6 @@ class ListReceiver extends Component {
       },
       () => callback("error"));
   }
-
 
   setSelection(uid,thumper,value,successCallback,errorCallback) {
     let valueType = thumper.valueType;
@@ -286,24 +305,94 @@ class ListReceiver extends Component {
     }
   }
 
+  redirect() {
+    window.location.replace(this.state.theme.redirectLink);
+  }
+
   render() {
-    let list = this.state.thumper.data.split(",");
+    let data = this.state.thumperData;
+
+    if (!data || !this.state.theme) {
+      return null;
+    }
+
     let selectionIndex = this.state.selection - 1;
     if (selectionIndex !== 0) {
-      let temp = list[selectionIndex];
-      list[selectionIndex] = list[0];
-      list[0] = temp;
+      let temp = data.list[selectionIndex];
+      data.list[selectionIndex] = data.list[0];
+      data.list[0] = temp;
+    }
+
+    if (data.showAd === "true" || data.showAd === true) {
+      data.showAd = true;
+    } else {
+      data.showAd = false;
     }
     return (
+      <Grid container spacing={0}>
+        <Grid item xs={12}>
+          <div className="doodleContainer">
+            <img id="doodle" src={this.state.theme.header} alt="header" draggable="false" onClick={this.redirect} />
+          </div>
+        </Grid>
+        {data.showAd ?
+          <Grid item xs={12}>
+            <div className="doodleContainer">
+              <img src={this.state.theme.adTop} alt="Ad" draggable="false" onClick={this.redirect} />
+            </div>
+          </Grid>
+        : null}
+        <Grid item xs={12}>
+          <h1 className="title">{data.title}</h1>
+        </Grid>
+        <Grid item xs={12} className={this.props.classes.listPadding}>
+          <ul className="mainList">
+            {
+              data.list.map((item, i) => {
+                let index = i + 1;
+                return <li key={item} className={i === 0 ? this.props.classes.topMarNone : ""}><span className={this.state.theme.numberClass}>{index}</span> {item}</li>;
+              })
+            }
+          </ul>
+        </Grid>
+        <Grid item xs={12}>
+          <div className="doodleContainer">
+            <img id="doodle" src={this.state.theme.footer} alt="Buzzfeed" draggable="false" onClick={this.redirect} />
+          </div>
+        </Grid>
+        {data.showAd ?
+          <Grid item xs={12}>
+            <div className="doodleContainer">
+              <img src={this.state.theme.adBottom} alt="Ad" draggable="false" onClick={this.redirect} />
+            </div>
+          </Grid>
+        : null}
+      </Grid>
+    );
+    return (
       <div className="App">
+        {data.header}
+        
         <ol>
           {
-            list.map(item => <li key={item}>{item}</li>)
+            data.list.map(item => <li key={item}>{item}</li>)
           }
         </ol>
+        
       </div>
     );
   }
 }
 
-export default ListReceiver;
+
+//TODO currently styles are unused here
+const styles = {
+  listPadding: {
+    padding: '0 10px'
+  },
+  topMarNone: {
+    marginTop: '0'
+  }
+};
+
+export default withStyles(styles)(ListReceiver);

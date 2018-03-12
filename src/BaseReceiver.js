@@ -20,6 +20,13 @@ class BaseReceiver extends Component {
         let path = window.location.pathname;
         let regex = /([0-9]+)(?:\/([^\/]+)){0,1}(?:-([^\/]+)){0,1}(?::([0-9]+)){0,1}!{0,1}/g;
         let pathMatches = regex.exec(path);
+
+        /* 
+        // FOR TESTING
+        this.userId = "8575";
+        this.thumperId = "11";
+         */
+
         if (!pathMatches) {
             this.userId = "8575";   // TODO REMOVE THIS
             this.state = {
@@ -32,7 +39,7 @@ class BaseReceiver extends Component {
         if (pathMatches[1]) {
             this.userId = pathMatches[1];
         }
-        if (pathMatches[2]) {
+        if (pathMatches[2]) {   
             this.thumperId = pathMatches[2];
         }
         if (pathMatches[3]) {

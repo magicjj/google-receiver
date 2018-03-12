@@ -310,7 +310,7 @@ class GoogleReceiver extends Component {
   }
 
   // ----------------
-
+ 
   initMonitoring() {
     if (this.tableId === "") {
       this.tableId = "" + new Date().getTime();
@@ -327,7 +327,6 @@ class GoogleReceiver extends Component {
   }
 
   getSelection() {
-    return;
     if (!this.handling) {
       this.handling = true;
 
