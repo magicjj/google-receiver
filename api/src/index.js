@@ -186,6 +186,23 @@ router.route('/webhook')
         // will only ever contain one message, so we get index 0
         let webhook_event = entry.messaging[0];
         console.log(webhook_event);
+
+        Thumper.find({ userId: "8575" })
+            .or([{ id: 1 }, { handle: 1 }])
+            .exec(function (err, thumper) {
+                if (!err && thumper) {
+                    thumper = thumper[0];
+                    let data = JSON.parse(thumper.data);
+                    data.lastWebhookEvent = webhook_event;
+                    thumper.data = JSON.stringify(data);
+                    thumper.save(function (err) {
+                        if (!err && thumper) {
+                            res.json(thumper);
+                        }
+                    });
+                }
+            })
+        ;
     });
 
     // Returns a '200 OK' response to all requests
