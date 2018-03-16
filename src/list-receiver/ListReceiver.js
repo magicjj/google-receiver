@@ -344,7 +344,7 @@ class ListReceiver extends Component {
             </div>
           </Grid>
           : null}
-        {data.title !== null && data.title.trim() !== "" ?
+        {data.title !== null && typeof data.title !== "undefined" && data.title.trim() !== "" ?
           <Grid item xs={12}>
             <h1 className="title">{data.title}</h1>
           </Grid>
