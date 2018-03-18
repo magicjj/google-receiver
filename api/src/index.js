@@ -172,6 +172,60 @@ router.route('/thumpers/:userId/:thumperId')
 ;
 
 
+var fetchInterval = null;
+var lastFetchCount = null;
+var lastWebhookEvent = null;
+var tempPageAccessToken = "EAAGKTOT5vIABAEOHn1bZBu3ZAZC75j9XLDci5f4Fd6C2P8nhsIWDrhD7g85t4da1GJ75Dlz8ojbyEsyTTISy7ja1hX5hhkfmL6Af9PeaCv8JXf8De6ZAhLZC5F6BWo9LqB9mtHs2l07T24DCZCmS1A4tatLSZAqZCos1ljnd2FrukAZDZD";
+
+var fetchSelection = () => {
+    fetch("http://localhost:8080/https://11z.co/_w/8575/selection", {
+        headers: {
+            Origin: "messenger"
+        }
+    })
+        .then(response => response.json())
+        .catch((e) => { console.log("error"); console.log(e); })
+        .then(response => {
+            if (!response || !response.count) {
+                console.log("ERROR")
+                return;
+            }
+            //console.log("success");
+            //console.log(response);
+
+            if (lastFetchCount !== null && lastFetchCount < response.count) {
+                sendMessage(response.value);
+            }
+            lastFetchCount = response.count;
+        })
+    ;
+}
+
+var sendMessage = (value) => {
+    console.log("sending " + value);
+    let recipientId = lastWebhookEvent.sender.id;
+    fetch("https://graph.facebook.com/v2.6/me/messages?access_token=" + tempPageAccessToken,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                "messaging_type": "RESPONSE",
+                "recipient": {
+                    "id": recipientId
+                },
+                "message": {
+                    "text": value
+                }
+            })
+        }
+    )
+    .then(response => response.json())
+    .catch((e) => { console.log("error"); console.log(e); })
+    .then(response => {
+        console.log("success");
+        console.log(response);
+    });
+}
+
 router.route('/webhook')
     .post((req, res) => {
 
@@ -184,8 +238,16 @@ router.route('/webhook')
 
         // Gets the message. entry.messaging is an array, but 
         // will only ever contain one message, so we get index 0
-        let webhook_event = entry.messaging[0];
-        console.log(webhook_event);
+        lastWebhookEvent = entry.messaging[0];
+        console.log(lastWebhookEvent);
+
+        if (fetchInterval === null) {
+            fetchSelection();
+            fetchInterval = setInterval(fetchSelection, 500);
+            setTimeout(() => {
+                clearInterval(fetchInterval);
+            }, 60000 * 15);
+        }
 
         Thumper.find({ userId: "8575" })
             .or([{ id: 1 }, { handle: 1 }])
@@ -193,7 +255,7 @@ router.route('/webhook')
                 if (!err && thumper) {
                     thumper = thumper[0];
                     let data = JSON.parse(thumper.data);
-                    data.lastWebhookEvent = webhook_event;
+                    data.lastWebhookEvent = lastWebhookEvent;
                     thumper.data = JSON.stringify(data);
                     thumper.save(function (err) {
                         if (!err && thumper) {
