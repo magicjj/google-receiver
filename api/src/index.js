@@ -177,7 +177,6 @@ var fetchInterval = null;
 var lastFetchCount = null;
 var lastWebhookEvent = null;
 var tempPageAccessToken = "EAAGKTOT5vIABAEOHn1bZBu3ZAZC75j9XLDci5f4Fd6C2P8nhsIWDrhD7g85t4da1GJ75Dlz8ojbyEsyTTISy7ja1hX5hhkfmL6Af9PeaCv8JXf8De6ZAhLZC5F6BWo9LqB9mtHs2l07T24DCZCmS1A4tatLSZAqZCos1ljnd2FrukAZDZD";
-//var messageSent = false;
 
 var fetchSelection = () => {
     fetch("http://localhost:8080/https://11z.co/_w/8575/selection", {
@@ -204,10 +203,6 @@ var fetchSelection = () => {
 }
 
 var sendMessage = (value) => {
- /*    if (messageSent) {
-        return;
-    }
-    messageSent = true; */
     let recipientId = lastWebhookEvent.sender.id;
     console.log("sending '" + value + "' to " + recipientId);
     fetch("https://graph.facebook.com/v2.6/me/messages?access_token=" + tempPageAccessToken,
@@ -222,7 +217,7 @@ var sendMessage = (value) => {
                     "id": recipientId
                 },
                 "message": {
-                    "text": value
+                    "text": "Unbelievable! You picked the  " + value + "!"
                 }
             })
         }
@@ -250,13 +245,15 @@ router.route('/webhook')
         lastWebhookEvent = entry.messaging[0];
         console.log(lastWebhookEvent);
 
-        if (fetchInterval === null) {
-            fetchSelection();
-            fetchInterval = setInterval(fetchSelection, 500);
-            setTimeout(() => {
-                clearInterval(fetchInterval);
-            }, 60000 * 15);
+        if (fetchInterval !== null) {
+            clearInterval(fetchInterval);
         }
+        
+        fetchSelection();
+        fetchInterval = setInterval(fetchSelection, 500);
+        setTimeout(() => {
+            clearInterval(fetchInterval);
+        }, 60000 * 15);
 
         Thumper.find({ userId: "8575" })
             .or([{ id: 1 }, { handle: 1 }])
