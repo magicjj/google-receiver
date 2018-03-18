@@ -204,15 +204,18 @@ var fetchSelection = () => {
 }
 
 var sendMessage = (value) => {
-    console.log("sending " + value);
  /*    if (messageSent) {
         return;
     }
     messageSent = true; */
     let recipientId = lastWebhookEvent.sender.id;
+    console.log("sending '" + value + "' to " + recipientId);
     fetch("https://graph.facebook.com/v2.6/me/messages?access_token=" + tempPageAccessToken,
         {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
                 "messaging_type": "RESPONSE",
                 "recipient": {
