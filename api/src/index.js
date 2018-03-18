@@ -265,7 +265,8 @@ router.route('/webhook')
                     thumper.data = JSON.stringify(data);
                     thumper.save(function (err) {
                         if (!err && thumper) {
-                            res.json(thumper);
+                            console.log("thumper lastWebhookEvent updated");
+                            //res.json(thumper);
                         }
                     });
                 }
