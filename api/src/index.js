@@ -1,5 +1,4 @@
-import fetch from 'node-fetch';
-
+var fetch = require('node-fetch');
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
